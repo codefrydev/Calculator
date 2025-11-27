@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calculator.Shooting", "Calculator.Shooting\Calculator.Shooting.csproj", "{CA3E7BF6-AE4A-4FB6-85DF-45277B85564D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CA3E7BF6-AE4A-4FB6-85DF-45277B85564D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA3E7BF6-AE4A-4FB6-85DF-45277B85564D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA3E7BF6-AE4A-4FB6-85DF-45277B85564D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA3E7BF6-AE4A-4FB6-85DF-45277B85564D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,197 @@
+﻿@page "/"
+@using Calculator.Shooting.Models
+@using Calculator.Shooting.Services
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Components.Forms
+
+<PageTitle>Shooter Calculator</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header">Configuration</div>
+                <div class="card-body">
+                    <EditForm Model="@_inputs" OnValidSubmit="@Calculate">
+                        <DataAnnotationsValidator/>
+                        <ValidationSummary/>
+
+                        <div class="mb-3">
+                            <label class="form-label">Number of Motors</label>
+                            <InputNumber @bind-Value="_inputs.NumMotors" class="form-control"/>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="small text-muted">Wheel Mass</label>
+                                <InputNumber @bind-Value="_inputs.WheelMass" class="form-control form-control-sm"/>
+                            </div>
+                            <div class="col">
+                                <label class="small text-muted">Wheel Diam</label>
+                                <InputNumber @bind-Value="_inputs.WheelDiameter" class="form-control form-control-sm"/>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="small text-muted">Proj. Mass</label>
+                                <InputNumber @bind-Value="_inputs.ProjectileMass" class="form-control form-control-sm"/>
+                            </div>
+                            <div class="col">
+                                <label class="small text-muted">Proj. Diam</label>
+                                <InputNumber @bind-Value="_inputs.ProjectileDiameter"
+                                             class="form-control form-control-sm"/>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Target RPM</label>
+                            <InputNumber @bind-Value="_inputs.WheelTargetSpeed" class="form-control"/>
+                        </div>
+
+                        <hr/>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6>Gear Stages</h6>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="AddStage">
+                                + Add
+                            </button>
+                        </div>
+
+                        @for (int i = 0; i < _inputs.Stages.Count; i++)
+                        {
+                            var index = i; // Capture index
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">In</span>
+                                <InputNumber @bind-Value="_inputs.Stages[index].InputGear" class="form-control"
+                                             placeholder="60"/>
+                                <span class="input-group-text">Out</span>
+                                <InputNumber @bind-Value="_inputs.Stages[index].OutputGear" class="form-control"
+                                             placeholder="12"/>
+                                <button type="button" class="btn btn-danger" @onclick="() => RemoveStage(index)">X
+                                </button>
+                            </div>
+                        }
+
+                        <hr/>
+                        <button type="submit" class="btn btn-primary w-100">Calculate Results</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        @if (_allResults is not null)
+        {
+            <h3>Results</h3>
+            <div class="border rounded shadow-sm" style="overflow-x: auto; max-width: 100%;">
+
+                <QuickGrid Items="@_allResults"
+                           Class="table table-striped table-hover table-bordered table-sm small">
+
+                    <PropertyColumn Property="@(p => p.MotorName)" Sortable="true" Title="Motor"/>
+                    <PropertyColumn Property="@(p => p.GearRatio)" Sortable="true" Title="Gear Ratio" Format="F2"/>
+
+                    <PropertyColumn Property="@(p => p.RecoveryTime)" Sortable="true" Title="Recovery (s)"
+                                    Format="F4"/>
+                    <PropertyColumn Property="@(p => p.SpinUpTime)" Sortable="true" Title="Spin Up (s)"
+                                    Format="F4"/>
+                    <PropertyColumn Property="@(p => p.ShotRate)" Sortable="true" Title="Shot Rate (Hz)"
+                                    Format="F2"/>
+
+                    <PropertyColumn Property="@(p => p.RotationalSpeed)" Sortable="true" Title="RPM" Format="N0"/>
+                    <PropertyColumn Property="@(p => p.MaxRotationalSpeed)" Sortable="true" Title="Max RPM"
+                                    Format="N0"/>
+                    <PropertyColumn Property="@(p => p.SurfaceSpeed)" Sortable="true" Title="Surf. Speed"
+                                    Format="F2"/>
+                    <PropertyColumn Property="@(p => p.ProjectileSpeed)" Sortable="true" Title="Proj. Speed"
+                                    Format="F2"/>
+
+                    <PropertyColumn Property="@(p => p.PeakCurrentPerMotor)" Sortable="true"
+                                    Title="Peak Current (A)" Format="F1"/>
+                    <PropertyColumn Property="@(p => p.SpeedOverhead)" Sortable="true" Title="Speed Overhead"
+                                    Format="F2"/>
+                    <PropertyColumn Property="@(p => p.SpeedTransfer)" Sortable="true" Title="Speed Transfer"
+                                    Format="F2"/>
+                    <PropertyColumn Property="@(p => p.SpeedAfterShot)" Sortable="true" Title="Speed After"
+                                    Format="F2"/>
+
+                    <PropertyColumn Property="@(p => p.FlywheelEnergy)" Sortable="true" Title="Flywheel Energy"
+                                    Format="F2"/>
+                    <PropertyColumn Property="@(p => p.ProjectileEnergy)" Sortable="true" Title="Proj. Energy"
+                                    Format="F2"/>
+                    <PropertyColumn Property="@(p => p.EnergyLostPerShot)" Sortable="true" Title="Energy Lost"
+                                    Format="F2"/>
+
+                    <PropertyColumn Property="@(p => p.WheelMOI)" Sortable="true" Title="Wheel MOI" Format="F6"/>
+                    <PropertyColumn Property="@(p => p.FwMOI)" Sortable="true" Title="Flywheel MOI" Format="F6"/>
+                    <PropertyColumn Property="@(p => p.CustomMOIEff)" Sortable="true" Title="MOI Eff" Format="F4"/>
+                    <PropertyColumn Property="@(p => p.TotalMOI)" Sortable="true" Title="Total MOI" Format="F6"/>
+
+                </QuickGrid>
+            </div>
+            <div class="text-muted small mt-1">
+                * Scroll horizontally to view all columns
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">Click Calculate to see results.</div>
+        }
+    </div>
+</div>
+
+@code {
+
+    // 1. Move inputs to class level so the Form can bind to it
+    private ShooterInputs _inputs = new();
+
+    // 2. Variable to hold results
+    private IQueryable<ShooterResults>? _allResults;
+
+    protected override void OnInitialized()
+    {
+        // 3. Set your defaults here
+        _inputs = new ShooterInputs
+        {
+            Stages =
+            [
+                new GearStage { OutputGear = 12, InputGear = 60 },
+                new GearStage { OutputGear = 16, InputGear = 48 }
+            ],
+            NumMotors = 2,
+            WheelMass = 0.5,
+            WheelDiameter = 4,
+            ProjectileMass = 0.6,
+            ProjectileDiameter = 9.5,
+            WheelTargetSpeed = 4500
+        };
+
+        // Optional: Auto-calculate on load
+        Calculate();
+    }
+
+    private void Calculate()
+    {
+        // 4. Use the bound 'inputs' object instead of creating a new one
+        _allResults = ShootingMechanismCalculator
+            .CalculateForAllMotors(_inputs)
+            .Select(x => x.Results)
+            .AsQueryable();
+    }
+
+    // Helper to add a new gear stage row
+    private void AddStage()
+    {
+        _inputs.Stages.Add(new GearStage { InputGear = 1, OutputGear = 1 });
+    }
+
+    // Helper to remove a gear stage row
+    private void RemoveStage(int index)
+    {
+        if (index >= 0 && index < _inputs.Stages.Count)
+        {
+            _inputs.Stages.RemoveAt(index);
+        }
+    }
+
+}
