@@ -2,6 +2,8 @@
 @using Calculator.Shooting.Models
 @using Calculator.Shooting.Services
 @using Microsoft.AspNetCore.Components.QuickGrid
+
+@inject IJSRuntime JSRuntime
 @using Microsoft.AspNetCore.Components.Forms
 
 <PageTitle>Shooter Calculator</PageTitle>
@@ -138,10 +140,18 @@
             <div class="alert alert-info">Click Calculate to see results.</div>
         }
     </div>
+    <div class="row">
+        <div id="quadratic-formula">
+            Loading formula...
+        </div>
+    </div>
 </div>
 
 @code {
-
+    private const string QuadraticFormulaLatex = @"x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}";
+    
+    // 2. The ID of the target element
+    private const string ElementId = "quadratic-formula";
     // 1. Move inputs to class level so the Form can bind to it
     private ShooterInputs _inputs = new();
 
@@ -193,5 +203,18 @@
             _inputs.Stages.RemoveAt(index);
         }
     }
-
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Only run on the first render for this static content
+        if (firstRender)
+        {
+            // Call the JS interop function
+            await JSRuntime.InvokeVoidAsync(
+                "katexInterop.render",
+                ElementId,                  // The ID of the div to render into
+                QuadraticFormulaLatex,      // The LaTeX string
+                true                        // displayMode: true for block rendering
+            );
+        }
+    }
 }
