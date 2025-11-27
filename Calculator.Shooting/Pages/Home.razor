@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using Calculator.Shooting.Helpers
 @using Calculator.Shooting.Models
 @using Calculator.Shooting.Services
 @using Microsoft.AspNetCore.Components.QuickGrid
@@ -141,17 +142,34 @@
         }
     </div>
     <div class="row">
-        <div id="quadratic-formula">
-            Loading formula...
+        <h3>Motor Data</h3>
+        <div class="border rounded shadow-sm" style="overflow-x: auto; max-width: 100%;">
+            <QuickGrid Items="MotorsHelper.Motors.AsQueryable()" Class="table table-striped table-hover table-bordered table-sm small">
+                <PropertyColumn Property="@(p => p.Name)" Sortable="true" Title="Name"></PropertyColumn>
+                <PropertyColumn Property="@(p => p.Voltage)" Sortable="true" Title="Voltage"></PropertyColumn>
+                <PropertyColumn Property="@(p => p.FreeCurrent)" Sortable="true" Title="FreeSpeed"></PropertyColumn>
+                <PropertyColumn Property="@(p => p.StallTorque)" Sortable="true" Title="StallTorque"></PropertyColumn>
+                <PropertyColumn Property="@(p => p.StallCurrent)" Sortable="true" Title="StallCurrent"></PropertyColumn>
+                <PropertyColumn Property="@(p => p.FreeCurrent)" Sortable="true" Title="FreeCurrent"></PropertyColumn>
+            </QuickGrid>
+        </div>
+    </div>
+    <div class="row">
+        <div id="formula-container">
+            @foreach (var formula in Formulas)
+            {
+                <div class="formula-item">
+                    <h4>@formula.Title</h4>
+                    <div id="@GetFormulaElementId(formula)">
+                        @formula.Latex </div>
+                </div>
+                <hr/>
+            }
         </div>
     </div>
 </div>
 
 @code {
-    private const string QuadraticFormulaLatex = @"x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}";
-    
-    // 2. The ID of the target element
-    private const string ElementId = "quadratic-formula";
     // 1. Move inputs to class level so the Form can bind to it
     private ShooterInputs _inputs = new();
 
@@ -203,18 +221,71 @@
             _inputs.Stages.RemoveAt(index);
         }
     }
+    private List<FormulaModel> Formulas = new List<FormulaModel>
+    {
+        // 🎯 CORE MECHANICAL FORMULAS
+            new FormulaModel { Index = 1, Section = "Core Mechanical", Title = "Gear Ratio Calculation", Latex = @"\text{Gear Ratio} = \frac{\prod_{i=1}^{n} \text{Output Gear}_i}{\prod_{i=1}^{n} \text{Input Gear}_i}" },
+            new FormulaModel { Index = 2, Section = "Core Mechanical", Title = "Max Rotational Speed", Latex = @"\text{Max Rotational Speed} = \frac{\text{Motor Free Speed (RPM)}}{\text{Gear Ratio}}" },
+            new FormulaModel { Index = 3, Section = "Core Mechanical", Title = "Operating Rotational Speed", Latex = @"\text{Operating Rotational Speed} = \min(\text{Max Rotational Speed}, \text{Target Speed})" },
+            new FormulaModel { Index = 4, Section = "Core Mechanical", Title = "Surface Velocity (ft/s)", Latex = @"\text{Surface Speed} = \frac{\text{Rotational Speed} \times \pi \times \text{Wheel Diameter}}{12 \times 60}" },
+
+            // 📊 MOMENT OF INERTIA CALCULATIONS
+            new FormulaModel { Index = 5, Section = "MOI", Title = "Wheel MOI", Latex = @"I_{\text{wheel}} = \text{Style Factor} \times \frac{1}{2} \times m_{\text{wheel}} \times r_{\text{wheel}}^2" },
+            new FormulaModel { Index = 6, Section = "MOI", Title = "Flywheel MOI", Latex = @"I_{\text{flywheel}} = \text{Style Factor} \times \frac{1}{2} \times m_{\text{flywheel}} \times r_{\text{flywheel}}^2 \times \left(\frac{\omega_{\text{flywheel}}}{\omega_{\text{wheel}}}\right)^2" },
+            new FormulaModel { Index = 7, Section = "MOI", Title = "Total System MOI", Latex = @"I_{\text{total}} = I_{\text{wheel}} + I_{\text{flywheel}} + I_{\text{custom}}" },
+
+            // 🔄 SPEED TRANSFER PHYSICS
+            new FormulaModel { Index = 8, Section = "Speed Transfer", Title = "Speed Transfer Efficiency", Latex = @"\text{Speed Transfer Efficiency} = \frac{I_{\text{total}}}{I_{\text{total}} + m_{\text{projectile}} \times r_{\text{wheel}}^2}" },
+            new FormulaModel { Index = 9, Section = "Speed Transfer", Title = "Projectile Velocity", Latex = @"v_{\text{projectile}} = v_{\text{surface}} \times \text{Speed Transfer Efficiency}" },
+
+            // ⚡ MOTOR DYNAMICS
+            new FormulaModel { Index = 10, Section = "Motor Dynamics", Title = "Available Torque", Latex = @"\tau_{\text{available}} = \eta_{\text{gearbox}} \times N_{\text{motors}} \times \tau_{\text{stall}} \times \text{Gear Ratio}" },
+            new FormulaModel { Index = 11, Section = "Motor Dynamics", Title = "Motor Current Draw", Latex = @"I_{\text{motor}} = I_{\text{free}} + (I_{\text{stall}} - I_{\text{free}}) \times \left(1 - \frac{\omega}{\omega_{\text{free}}}\right)" },
+
+            // ⏱️ TIME DOMAIN ANALYSIS
+            new FormulaModel { Index = 12, Section = "Time Analysis", Title = "Spin-up Time", Latex = @"t_{\text{spin-up}} = \frac{I_{\text{total}} \times \omega}{\tau_{\text{available}}}" },
+            new FormulaModel { Index = 13, Section = "Time Analysis", Title = "Flywheel Energy", Latex = @"E_{\text{flywheel}} = \frac{1}{2} \times I_{\text{total}} \times \omega^2" },
+            new FormulaModel { Index = 14, Section = "Time Analysis", Title = "Projectile Energy", Latex = @"E_{\text{projectile}} = \frac{1}{2} \times m_{\text{projectile}} \times v_{\text{projectile}}^2 + \frac{1}{2} \times I_{\text{projectile}} \times \omega_{\text{projectile}}^2" },
+            new FormulaModel { Index = 15, Section = "Time Analysis", Title = "Energy Transfer Efficiency (Shot)", Latex = @"\eta_{\text{shot}} = \frac{E_{\text{projectile}}}{E_{\text{flywheel}}}" },
+            new FormulaModel { Index = 16, Section = "Time Analysis", Title = "Post-shot Velocity", Latex = @"\omega_{\text{after shot}} = \omega \times \sqrt{1 - \frac{\eta_{\text{shot}}}{\eta_{\text{transfer}}}}" },
+            new FormulaModel { Index = 17, Section = "Time Analysis", Title = "Recovery Time", Latex = @"t_{\text{recovery}} = \frac{I_{\text{total}} \times (\omega_{\text{target}} - \omega_{\text{after shot}})}{\tau_{\text{available}}}" },
+            new FormulaModel { Index = 18, Section = "Time Analysis", Title = "Maximum Shot Rate", Latex = @"f_{\text{max}} = \frac{1}{t_{\text{recovery}}}" },
+
+            // 📐 GEOMETRIC RELATIONSHIPS
+            new FormulaModel { Index = 19, Section = "Geometry", Title = "Wheel Radius", Latex = @"r_{\text{wheel}} = \frac{d_{\text{wheel}}}{2}" },
+            new FormulaModel { Index = 20, Section = "Geometry", Title = "Surface Angular Speed", Latex = @"\omega_{\text{surface}} = \omega_{\text{wheel}} \times r_{\text{wheel}}" },
+            new FormulaModel { Index = 21, Section = "Geometry", Title = "Velocity from Angular Speed", Latex = @"v_{\text{surface}} = \omega_{\text{wheel}} \times r_{\text{wheel}}" },
+            new FormulaModel { Index = 22, Section = "Geometry", Title = "Projectile Velocity (Transfer)", Latex = @"v_{\text{projectile}} = v_{\text{surface}} \times \eta_{\text{transfer}}" },
+
+            // 🎯 PERFORMANCE METRICS
+            new FormulaModel { Index = 23, Section = "Performance", Title = "Speed Overhead (Margin)", Latex = @"\text{Speed Margin} = \left(1 - \frac{\omega_{\text{operating}}}{\omega_{\text{max}}}\right) \times 100\%" },
+            new FormulaModel { Index = 24, Section = "Performance", Title = "Mechanical Power", Latex = @"P_{\text{mechanical}} = \tau_{\text{available}} \times \omega_{\text{operating}}" },
+            new FormulaModel { Index = 25, Section = "Performance", Title = "Electrical Power", Latex = @"P_{\text{electrical}} = \frac{P_{\text{mechanical}}}{\eta_{\text{system}}}" }
+    };
+
+    public class FormulaModel
+    {
+        public int Index { get; set; } // Used to ensure a unique ID
+        public string Title { get; set; } = string.Empty;
+        public string Latex { get; set; } = string.Empty;
+        public string Section { get; set; }
+    }
+    private string GetFormulaElementId(FormulaModel formula) => $"formula-{formula.Index}";
+    // Call the Auto-Render function after the Blazor component has rendered its content to the DOM
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Only run on the first render for this static content
         if (firstRender)
         {
-            // Call the JS interop function
-            await JSRuntime.InvokeVoidAsync(
-                "katexInterop.render",
-                ElementId,                  // The ID of the div to render into
-                QuadraticFormulaLatex,      // The LaTeX string
-                true                        // displayMode: true for block rendering
-            );
+            // IMPORTANT: Loop through the list and call the JS interop for EACH item.
+            foreach (var formula in Formulas)
+            {
+                await JSRuntime.InvokeVoidAsync(
+                    "katexInterop.render",
+                    GetFormulaElementId(formula),   // The unique ID
+                    formula.Latex,                  // The LaTeX content
+                    true                            // displayMode: true for block rendering
+                );
+            }
         }
     }
 }
