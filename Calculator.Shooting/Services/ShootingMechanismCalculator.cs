@@ -3,7 +3,7 @@ using Calculator.Shooting.Models;
 
 namespace Calculator.Shooting.Services;
 
-public class ShootingMechanismCalculator
+public static class ShootingMechanismCalculator
 {
     private static readonly List<MotorData> Motors = MotorsHelper.Motors;
 
