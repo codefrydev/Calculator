@@ -1,0 +1,41 @@
+    <!-- MOBILE HEADER (Hamburger Menu) -->
+    <!-- Visible only on screens smaller than LG (992px) -->
+    <nav class="mobile-header d-lg-none">
+        <a href="#" class="sidebar-brand border-0 p-0 fs-5">
+            QuickGrid <span class="fw-light">for Blazor</span>
+        </a>
+        <button class="btn btn-dark border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#responsiveSidebar" aria-controls="responsiveSidebar">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+    </nav>
+
+    <!-- SIDEBAR -->
+    <!-- 'offcanvas-lg' makes it an offcanvas on small screens, but we override it with CSS for large screens -->
+    <div class="offcanvas-lg offcanvas-start sidebar" tabindex="-1" id="responsiveSidebar" aria-labelledby="sidebarLabel">
+        
+        <!-- Header inside sidebar (only visible when in offcanvas mode for closing) -->
+        <div class="offcanvas-header d-lg-none border-bottom border-secondary">
+            <h5 class="offcanvas-title text-white" id="sidebarLabel">Menu</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#responsiveSidebar" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body p-0 d-block">
+            <!-- Brand (Hidden on mobile because it's in the top bar, Visible on desktop) -->
+            <div class="sidebar-brand d-none d-lg-block">
+                QuickGrid <span class="fw-light">for Blazor</span>
+            </div>
+            
+            <div class="d-flex flex-column pt-2">
+                <a href="#" class="nav-link active">
+                    <i class="bi bi-house-door"></i> Home
+                </a>
+                <div class="nav-category">Samples</div>
+
+                <a href="#" class="nav-link">
+                    <i class="bi bi-code-slash"></i> Shooting
+                </a>
+            </div>
+        </div>
+    </div>
+
+    
